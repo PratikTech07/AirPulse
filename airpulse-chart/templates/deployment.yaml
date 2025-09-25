@@ -23,3 +23,9 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: 5000
+          env:
+            - name: AIRPULSE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "airpulse-chart.fullname" . }}-secret
+                  key: AIRPULSE_API_KEY
