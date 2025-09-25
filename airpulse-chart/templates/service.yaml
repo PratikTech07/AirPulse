@@ -3,10 +3,11 @@ kind: Service
 metadata:
   name: {{ include "airpulse-chart.fullname" . }}
 spec:
-  type: {{ .Values.service.type }}
+  type: NodePort
   ports:
-    - port: {{ .Values.service.port }}
+    - port: 5000
       targetPort: 5000
+      nodePort: 30007   # optional, let Kubernetes assign if not specified
   selector:
     app.kubernetes.io/name: {{ include "airpulse-chart.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}

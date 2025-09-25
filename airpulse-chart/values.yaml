@@ -9,6 +9,5 @@ service:
   type: NodePort
   port: 5000
 
-# Your API key for the app
 
 apiKey: "EC0yRS84vbovyvHyVcT8qA==x2gWDQrd1UASutsf"  # replace with your actual API key or manage via ArgoCD secret
