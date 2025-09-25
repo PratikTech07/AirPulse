@@ -1,12 +1,17 @@
 import requests
 import json
 from flask import Flask, render_template, request
+import os
+
+
 
 app = Flask(__name__)
+API_KEY = os.getenv("AIRPULSE_API_KEY")
+
 
 def get_air_quality(city):
     api_url = 'https://api.api-ninjas.com/v1/airquality?city={}'.format(city)
-    response = requests.get(api_url, headers={'X-Api-Key': 'EC0yRS84vbovyvHyVcT8qA==x2gWDQrd1UASutsf'})
+    response = requests.get(api_url, headers={'X-Api-Key': API_KEY})
     if response.status_code == requests.codes.ok:
         data = json.loads(response.text)
         return data
@@ -21,6 +26,10 @@ def index():
         return render_template('results.html', result=air_quality, city=city)
     return render_template('index.html')
 
+@app.route("/health")
+def health():
+    return {"status": "ok"}, 200
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0')
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
+

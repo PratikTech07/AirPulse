@@ -1,0 +1,10 @@
+image:
+  repository: garvitkulshrestha/airpulse_garvit
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 5000
+
+apiKey: "EC0yRS84vbovyvHyVcT8qA==x2gWDQrd1UASutsf"  # replace with your actual API key or manage via ArgoCD secret

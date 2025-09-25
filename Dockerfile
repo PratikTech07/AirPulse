@@ -7,5 +7,5 @@ RUN apt install pip -y
 RUN apt install git -y
 RUN pip install flask
 RUN pip install requests
-RUN git clone https://www.github.com/GarvitKul/AirPulse
+RUN git clone https://github.com/PratikTech07/AirPulse.git
 RUN cd /AirPulse/AirPulse
