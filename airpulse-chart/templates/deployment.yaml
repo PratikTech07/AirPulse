@@ -1,0 +1,11 @@
+containers:
+  - name: airpulse
+    image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+    imagePullPolicy: {{ .Values.image.pullPolicy }}
+    ports:
+      - containerPort: 5000
+    env:
+      - name: AIRPULSE_API_KEY
+        value: ""  # Or use secrets later
+
+
