@@ -1,18 +1,13 @@
 replicaCount: 1
 
 image:
-  repository: your-dockerhub-username/airpulse
-  tag: latest
-  pullPolicy: IfNotPresent
+  repository: your-dockerhub-username/airpulse   # Replace with your DockerHub username
+  tag: "latest"   # GitHub Actions will update this with the commit SHA
+  pullPolicy: Always
 
 service:
   type: NodePort
   port: 5000
-
-image:
-  repository: your-docker-username/airpulse
-  tag: "latest"   # GitHub Actions will replace this line with the commit SHA
-  pullPolicy: Always
 
 
 apiKey: "EC0yRS84vbovyvHyVcT8qA==x2gWDQrd1UASutsf"  # replace with your actual API key or manage via ArgoCD secret
