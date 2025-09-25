@@ -25,8 +25,15 @@ jobs:
 
     - name: Build Docker image
       run: |
-        docker build -t ${{ secrets.DOCKER_USERNAME }}/airpulse:latest .
+        IMAGE=${{ secrets.DOCKER_USERNAME }}/airpulse:${{ github.sha }}
+        docker build -t $IMAGE .
+        echo "IMAGE=$IMAGE" >> $GITHUB_ENV
 
     - name: Push Docker image
+      run: docker push ${{ env.IMAGE }}
+
+    - name: Update Helm values with new image tag
       run: |
-        docker push ${{ secrets.DOCKER_USERNAME }}/airpulse:latest
+        sed -i "s|tag:.*|tag: \"${GITHUB_SHA}\"|" ./airpulse-chart/values.yaml
+        cat ./airpulse-chart/values.yaml
+
