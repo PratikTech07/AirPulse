@@ -1,4 +1,4 @@
-name: Build and Deploy AirPulse
+name: Build and Push AirPulse Docker Image
 
 on:
   push:
@@ -32,12 +32,15 @@ jobs:
     - name: Push Docker image
       run: docker push ${{ env.IMAGE }}
 
-    - name: Update Helm values with new image tag
+    - name: Update Helm values
       run: |
         IMAGE_TAG=${GITHUB_SHA}
         sed -i "s|tag:.*|tag: \"$IMAGE_TAG\"|" ./airpulse-chart/values.yaml
         cat ./airpulse-chart/values.yaml
 
-    - name: Upgrade Helm deployment
+    - name: Deployment Reminder
       run: |
-        helm upgrade airpulse ./airpulse-chart --install
+        echo "Docker image built and pushed."
+        echo "Run the following locally to deploy:"
+        echo "  helm upgrade airpulse ./airpulse-chart --install"
+        echo "  or sync via ArgoCD UI locally."
