@@ -1,7 +1,7 @@
 {{- define "airpulse-chart.name" -}}
-{{ .Chart.Name }}
+airpulse
 {{- end }}
 
 {{- define "airpulse-chart.fullname" -}}
-{{ .Release.Name }}-{{ .Chart.Name }}
+{{ .Release.Name }}-airpulse
 {{- end }}

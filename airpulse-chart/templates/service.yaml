@@ -8,4 +8,5 @@ spec:
     - port: {{ .Values.service.port }}
       targetPort: 5000
   selector:
-    app: {{ include "airpulse-chart.name" . }}
+    app.kubernetes.io/name: {{ include "airpulse-chart.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
