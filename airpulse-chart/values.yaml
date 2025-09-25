@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: your-dockerhub-username/airpulse   # Replace with your DockerHub username
+  repository: pratik514/airpulse   # Replace with your DockerHub username
   tag: "latest"   # GitHub Actions will update this with the commit SHA
   pullPolicy: Always
 
