@@ -7,7 +7,7 @@ spec:
   ports:
     - port: 5000
       targetPort: 5000
-      nodePort: 30007   # optional, let Kubernetes assign if not specified
+      nodePort: 30007   # optional, let Kubernetes assign if not specified jlljslks
   selector:
     app.kubernetes.io/name: {{ include "airpulse-chart.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
