@@ -11,8 +11,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # 1️⃣ Checkout the repo
-    - name: Checkout code
+    # 1️⃣ Checkout the AirPulse application repo
+    - name: Checkout AirPulse repo
       uses: actions/checkout@v3
 
     # 2️⃣ Set up Docker Buildx
@@ -26,18 +26,21 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
-    # 4️⃣ Set image tag and update Helm values.yaml
-    - name: Set image tag
+    # 4️⃣ Set image tag (commit SHA) and update Helm values.yaml
+    - name: Update Helm values.yaml
       run: |
         IMAGE_TAG=${GITHUB_SHA}
         echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
-        sed -i "s|tag:.*|tag: \"$IMAGE_TAG\"|" ./airpulse-chart/values.yaml
-        cat ./airpulse-chart/values.yaml
+        # Clone your Helm chart repo
+        git clone https://github.com/PratikTech07/HelmChartForAirpulse.git
+        # Update the image tag in values.yaml
+        sed -i "s|tag:.*|tag: \"$IMAGE_TAG\"|" ./airpulse-helm/values.yaml
+        cat ./airpulse-helm/values.yaml
 
     # 5️⃣ Build Docker image
     - name: Build Docker image
       run: |
-        IMAGE=pratik514/airpulse:${{ env.IMAGE_TAG }}
+        IMAGE=${{ secrets.DOCKER_USERNAME }}/airpulse:${{ env.IMAGE_TAG }}
         echo "IMAGE=$IMAGE" >> $GITHUB_ENV
         docker build -t $IMAGE .
 
@@ -45,11 +48,20 @@ jobs:
     - name: Push Docker image
       run: docker push ${{ env.IMAGE }}
 
+    # 7️⃣ (Optional) Commit updated values.yaml to Helm chart repo
+    - name: Commit updated values.yaml
+      run: |
+        cd airpulse-helm
+        git config user.name "github-actions"
+        git config user.email "actions@github.com"
+        git add values.yaml
+        git commit -m "Update image tag to ${{ env.IMAGE_TAG }}"
+        git push origin main
 
-    # 7️⃣ Deployment reminder (local)
+    # 8️⃣ Deployment reminder (local)
     - name: Deployment Reminder
       run: |
         echo "✅ Docker image built and pushed to Docker Hub."
-        echo "Use the following to deploy locally:"
-        echo "  helm upgrade airpulse ./airpulse-chart --install"
-        echo "  or sync via ArgoCD UI."
+        echo "Deploy locally using Helm:"
+        echo "  helm upgrade airpulse ./airpulse-helm --install"
+        echo "Or sync via ArgoCD UI."
