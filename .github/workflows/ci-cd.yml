@@ -34,8 +34,8 @@ jobs:
         # Clone your Helm chart repo
         git clone https://github.com/PratikTech07/HelmChartForAirpulse.git
         # Update the image tag in values.yaml
-        sed -i "s|tag:.*|tag: \"$IMAGE_TAG\"|" ./airpulse-helm/values.yaml
-        cat ./airpulse-helm/values.yaml
+        sed -i "s|tag:.*|tag: \"$IMAGE_TAG\"|" ./airpulse-chart/values.yaml
+        cat ./airpulse-chart/values.yaml
 
     # 5️⃣ Build Docker image
     - name: Build Docker image
