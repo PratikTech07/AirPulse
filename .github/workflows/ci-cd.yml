@@ -54,8 +54,8 @@ jobs:
     - name: Commit updated values.yaml
       run: |
         cd HelmChartForAirpulse/airpulse-chart
-        git config user.name "github-actions"
-        git config user.email "actions@github.com"
+        git config user.name "PratikTech07"
+        git config user.email "bharskarpratik2@gmail.com"
         git add values.yaml
         git commit -m "Update image tag to ${{ env.IMAGE_TAG }}"
         git push origin main
