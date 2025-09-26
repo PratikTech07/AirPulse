@@ -27,15 +27,34 @@ jobs:
         password: ${{ secrets.DOCKER_PASSWORD }}
 
     # 4️⃣ Set image tag (commit SHA) and update Helm values.yaml
-    - name: Update Helm values.yaml
+    # - name: Update Helm values.yaml
+    #   run: |
+    #     IMAGE_TAG=${GITHUB_SHA}
+    #     echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+    #     # Clone your Helm chart repo
+    #     git clone https://github.com/PratikTech07/HelmChartForAirpulse.git
+    #     # Update the image tag in values.yaml
+    #     sed -i "s|tag:.*|tag: \"$IMAGE_TAG\"|" ./HelmChartForAirpulse/airpulse-chart/values.yaml
+    #     cat ./HelmChartForAirpulse/airpulse-chart/values.yaml
+
+
+    - name: Update Helm chart with new image
+      env:
+        HELM_REPO_TOKEN: ${{ secrets.HELM_REPO_TOKEN }}
       run: |
-        IMAGE_TAG=${GITHUB_SHA}
-        echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
-        # Clone your Helm chart repo
-        git clone https://github.com/PratikTech07/HelmChartForAirpulse.git
-        # Update the image tag in values.yaml
-        sed -i "s|tag:.*|tag: \"$IMAGE_TAG\"|" ./HelmChartForAirpulse/airpulse-chart/values.yaml
-        cat ./HelmChartForAirpulse/airpulse-chart/values.yaml
+        # Clone Helm chart repo
+        git clone https://$HELM_REPO_TOKEN@github.com/PratikTech07/HelmChartForAirpulse.git
+        cd HelmChartForAirpulse/airpulse-chart
+
+        # Configure Git user for the commit
+        git config user.name "PratikTech07"
+        git config user.email "bharskarpratik2@gmail.com"
+
+        # Update values.yaml with new Docker image tag
+        sed -i "s|tag:.*|tag: \"$IMAGE_TAG\"|" values.yaml
+        git add values.yaml
+        git commit -m "Update image tag to $IMAGE_TAG"
+        git push origin main
 
 
     # D:\Docker Practice\airpulse\HelmChartForAirpulse\airpulse-chart\values.yaml
@@ -60,10 +79,4 @@ jobs:
         git commit -m "Update image tag to ${{ env.IMAGE_TAG }}"
         git push origin main
 
-    # 8️⃣ Deployment reminder (local)
-    - name: Deployment Reminder
-      run: |
-        echo "✅ Docker image built and pushed to Docker Hub."
-        echo "Deploy locally using Helm:"
-        echo "  helm upgrade airpulse ./airpulse-helm --install"
-        echo "Or sync via ArgoCD UI."
+    
