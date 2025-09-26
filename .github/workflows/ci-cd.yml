@@ -33,14 +33,14 @@ jobs:
         echo "IMAGE=$IMAGE" >> $GITHUB_ENV
         docker build -t $IMAGE .
 
-    # 5️⃣ Push Docker image to Docker Hub
     - name: Push Docker image
       run: docker push ${{ env.IMAGE }}
 
     # 6️⃣ Update Helm values.yaml with new image tag
     - name: Update Helm values
       run: |
-        sed -i "s|tag:.*|tag: \"${GITHUB_SHA}\"|" ./airpulse-chart/values.yaml
+        IMAGE_TAG=${GITHUB_SHA}
+        sed -i "s|tag:.*|tag: \"$IMAGE_TAG\"|" ./airpulse-chart/values.yaml
         cat ./airpulse-chart/values.yaml
 
     # 7️⃣ Deployment Reminder (local)

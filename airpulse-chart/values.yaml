@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: pratik514/airpulse   # Replace with your DockerHub username
-  tag: "latest"   # GitHub Actions will update this with the commit SHA
+  tag: "PLACEHOLDER_TAG"   # GitHub Actions will update this with the commit SHA
   pullPolicy: Always
 
 service:
