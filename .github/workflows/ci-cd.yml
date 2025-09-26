@@ -34,9 +34,11 @@ jobs:
         # Clone your Helm chart repo
         git clone https://github.com/PratikTech07/HelmChartForAirpulse.git
         # Update the image tag in values.yaml
-        sed -i "s|tag:.*|tag: \"$IMAGE_TAG\"|" ./airpulse-chart/values.yaml
-        cat ./airpulse-chart/values.yaml
+        sed -i "s|tag:.*|tag: \"$IMAGE_TAG\"|" ./airpulse/HelmChartForAirpulse/airpulse-chart/values.yaml
+        cat ./airpulse/HelmChartForAirpulse/airpulse-chart/values.yaml
 
+
+    # D:\Docker Practice\airpulse\HelmChartForAirpulse\airpulse-chart\values.yaml
     # 5️⃣ Build Docker image
     - name: Build Docker image
       run: |
@@ -51,7 +53,7 @@ jobs:
     # 7️⃣ (Optional) Commit updated values.yaml to Helm chart repo
     - name: Commit updated values.yaml
       run: |
-        cd airpulse-helm
+        cd airpulse/HelmChartForAirpulse/airpulse-chart
         git config user.name "github-actions"
         git config user.email "actions@github.com"
         git add values.yaml
