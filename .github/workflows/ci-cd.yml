@@ -27,15 +27,19 @@ jobs:
         password: ${{ secrets.DOCKER_PASSWORD }}
 
     # 4️⃣ Set image tag (commit SHA) and update Helm values.yaml
-    # - name: Update Helm values.yaml
-    #   run: |
-    #     IMAGE_TAG=${GITHUB_SHA}
-    #     echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
-    #     # Clone your Helm chart repo
-    #     git clone https://github.com/PratikTech07/HelmChartForAirpulse.git
-    #     # Update the image tag in values.yaml
-    #     sed -i "s|tag:.*|tag: \"$IMAGE_TAG\"|" ./HelmChartForAirpulse/airpulse-chart/values.yaml
-    #     cat ./HelmChartForAirpulse/airpulse-chart/values.yaml
+
+    # D:\Docker Practice\airpulse\HelmChartForAirpulse\airpulse-chart\values.yaml
+    # 5️⃣ Build Docker image
+    - name: Build Docker image
+      run: |
+        IMAGE=${{ secrets.DOCKER_USERNAME }}/airpulse:${{ env.IMAGE_TAG }}
+        echo "IMAGE=$IMAGE"
+        docker build -t $IMAGE .
+        docker push $IMAGE
+
+    # 6️⃣ Push Docker image
+    - name: Push Docker image
+      run: docker push ${{ env.IMAGE }}
 
 
     - name: Update Helm chart with new image
@@ -55,29 +59,6 @@ jobs:
         git add values.yaml
         git commit -m "Update image tag to $IMAGE_TAG"
         git push origin main
-
-
-    # D:\Docker Practice\airpulse\HelmChartForAirpulse\airpulse-chart\values.yaml
-    # 5️⃣ Build Docker image
-    - name: Build Docker image
-      run: |
-        IMAGE=${{ secrets.DOCKER_USERNAME }}/airpulse:${{ env.IMAGE_TAG }}
-        echo "IMAGE=$IMAGE"
-        docker build -t $IMAGE .
-        docker push $IMAGE
-
-    # 6️⃣ Push Docker image
-    - name: Push Docker image
-      run: docker push ${{ env.IMAGE }}
-
-    # 7️⃣ (Optional) Commit updated values.yaml to Helm chart repo
-    - name: Commit updated values.yaml
-      run: |
-        cd HelmChartForAirpulse/airpulse-chart
-        git config user.name "PratikTech07"
-        git config user.email "bharskarpratik2@gmail.com"
-        git add values.yaml
-        git commit -m "Update image tag to ${{ env.IMAGE_TAG }}"
-        git push origin main
+   
 
     
