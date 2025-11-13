@@ -118,6 +118,7 @@ jobs:
           docker push $IMAGE
 
       # 7️⃣ Update Helm chart repo with new image tag
+      # nothing just testing
       - name: Update Helm chart with new image
         env:
           HELM_REPO_TOKEN: ${{ secrets.HELM_REPO_TOKEN }}
