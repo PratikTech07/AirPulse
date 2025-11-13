@@ -70,35 +70,27 @@ on:
 
 jobs:
   build-analyze-deploy:
-    name: Build, Analyze, and Deploy
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout repository
+      # 1️⃣ Checkout the source code
       - name: Checkout AirPulse repo
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Needed for better SonarQube analysis
+          fetch-depth: 0
 
-      # 2️⃣ SonarQube Scan
+      # 2️⃣ SonarQube Code Analysis
       - name: SonarQube Analysis
         uses: SonarSource/sonarqube-scan-action@v5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
-      # Uncomment below if you want to fail the pipeline on failed Quality Gate
-      # - name: SonarQube Quality Gate Check
-      #   uses: SonarSource/sonarqube-quality-gate-action@v1
-      #   timeout-minutes: 5
-      #   env:
-      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-      # 3️⃣ Set up Docker Buildx
+      # 3️⃣ Setup Docker Buildx
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      # 4️⃣ Log in to Docker Hub
+      # 4️⃣ Login to Docker Hub
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
@@ -109,7 +101,7 @@ jobs:
       - name: Set image tag
         run: echo "IMAGE_TAG=${GITHUB_SHA}" >> $GITHUB_ENV
 
-      # 6️⃣ Build and Push Docker image
+      # 6️⃣ Build & Push Docker image
       - name: Build and Push Docker image
         run: |
           IMAGE=${{ secrets.DOCKER_USERNAME }}/airpulse:${{ env.IMAGE_TAG }}
@@ -118,25 +110,36 @@ jobs:
           docker push $IMAGE
 
       # 7️⃣ Update Helm chart repo with new image tag
-      # nothing just testing
-      - name: Update Helm chart with new image
+      - name: Update Helm chart with new image tag
         env:
           HELM_REPO_TOKEN: ${{ secrets.HELM_REPO_TOKEN }}
         run: |
-          # Clone Helm chart repo
           git clone https://$HELM_REPO_TOKEN@github.com/PratikTech07/HelmChartForAirpulse.git
           cd HelmChartForAirpulse/airpulse-chart
 
-          # Configure Git user for the commit
           git config user.name "PratikTech07"
           git config user.email "bharskarpratik2@gmail.com"
 
-          # Update values.yaml with new Docker image tag
+          # Update tag in values.yaml
           sed -i "s|tag:.*|tag: \"${{ env.IMAGE_TAG }}\"|" values.yaml
 
           git add values.yaml
           git commit -m "Update image tag to ${{ env.IMAGE_TAG }}"
           git push origin main
 
+      # 8️⃣ Trigger ArgoCD Sync (Auto CD)
+      - name: Trigger ArgoCD Sync
+        run: |
+          # Login to ArgoCD and get token
+          curl -k -X POST \
+            -H "Content-Type: application/json" \
+            -d "{\"username\":\"${{ secrets.ARGOCD_USERNAME }}\",\"password\":\"${{ secrets.ARGOCD_PASSWORD }}\"}" \
+            ${{ secrets.ARGOCD_SERVER }}/api/v1/session \
+            | jq -r '.token' > token.txt
 
-    
+          TOKEN=$(cat token.txt)
+
+          # Trigger sync
+          curl -k -H "Authorization: Bearer $TOKEN" \
+            -X POST ${{ secrets.ARGOCD_SERVER }}/api/v1/applications/air-pulse/sync
+   
