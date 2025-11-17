@@ -118,15 +118,4 @@ jobs:
           git commit -m "Update image tag to ${{ env.IMAGE_TAG }}"
           git push origin main
 
-      - name: Trigger ArgoCD Sync
-        run: |
-          curl -k -X POST \
-            -H "Content-Type: application/json" \
-            -d "{\"username\":\"${{ secrets.ARGOCD_USERNAME }}\",\"password\":\"${{ secrets.ARGOCD_PASSWORD }}\"}" \
-            ${{ secrets.ARGOCD_SERVER }}/api/v1/session \
-            | jq -r '.token' > token.txt
-
-          TOKEN=$(cat token.txt)
-
-          curl -k -H "Authorization: Bearer $TOKEN" \
-            -X POST ${{ secrets.ARGOCD_SERVER }}/api/v1/applications/air-pulse/sync
+      
