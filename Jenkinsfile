@@ -5,13 +5,17 @@ pipeline {
         DOCKER_HUB_USER = 'pratiktech07'
         DOCKER_IMAGE_NAME = "${DOCKER_HUB_USER}/airpulse"
         HELM_REPO_URL = "github.com/PratikTech07/HelmChartForAirpulse.git"
-        IMAGE_TAG = "${env.GIT_COMMIT.take(7)}"
     }
 
     stages {
         stage('Checkout') {
             steps {
-                checkout scm
+                script {
+                    checkout scm
+                    // Set IMAGE_TAG dynamically after checkout
+                    env.IMAGE_TAG = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                    echo "Starting build for tag: ${env.IMAGE_TAG}"
+                }
             }
         }
 
@@ -20,7 +24,7 @@ pipeline {
                 script {
                     // This assumes you have credentials with ID 'docker-hub-credentials' in Jenkins
                     docker.withRegistry('https://index.docker.io/v1/', 'docker-hub-credentials') {
-                        def customImage = docker.build("${DOCKER_IMAGE_NAME}:${IMAGE_TAG}")
+                        def customImage = docker.build("${DOCKER_IMAGE_NAME}:${env.IMAGE_TAG}")
                         customImage.push()
                         customImage.push("latest")
                     }
@@ -45,11 +49,11 @@ pipeline {
                         git config user.email "jenkins@airpulse.com"
 
                         # Update the image tag in values.yaml
-                        sed -i "s|tag:.*|tag: \"${IMAGE_TAG}\"|" values.yaml
+                        sed -i "s|tag:.*|tag: \\"${env.IMAGE_TAG}\\"|" values.yaml
 
                         # Commit and push the changes
                         git add values.yaml
-                        git commit -m "Update AirPulse image tag to ${IMAGE_TAG} [Jenkins Build #${env.BUILD_NUMBER}]"
+                        git commit -m "Update AirPulse image tag to ${env.IMAGE_TAG} [Jenkins Build #${env.BUILD_NUMBER}]"
                         git push origin main
                     """
                 }
