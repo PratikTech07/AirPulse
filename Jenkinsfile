@@ -22,11 +22,13 @@ pipeline {
         stage('Build & Push Docker Image') {
             steps {
                 script {
-                    // This assumes you have credentials with ID 'docker-hub-credentials' in Jenkins
-                    docker.withRegistry('https://index.docker.io/v1/', 'docker-hub-credentials') {
-                        def customImage = docker.build("${DOCKER_IMAGE_NAME}:${env.IMAGE_TAG}")
-                        customImage.push()
-                        customImage.push("latest")
+                    // Using standard withCredentials for better transparency
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
+                        sh "docker build -t ${DOCKER_IMAGE_NAME}:${env.IMAGE_TAG} ."
+                        sh "docker tag ${DOCKER_IMAGE_NAME}:${env.IMAGE_TAG} ${DOCKER_IMAGE_NAME}:latest"
+                        sh "docker push ${DOCKER_IMAGE_NAME}:${env.IMAGE_TAG}"
+                        sh "docker push ${DOCKER_IMAGE_NAME}:latest"
                     }
                 }
             }
