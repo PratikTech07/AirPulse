@@ -5,10 +5,6 @@ pipeline {
         DOCKER_HUB_USER = 'pratiktech07'
         DOCKER_IMAGE_NAME = "${DOCKER_HUB_USER}/airpulse"
         HELM_REPO_URL = "github.com/PratikTech07/HelmChartForAirpulse.git"
-        // This binds DOCKER_HUB_USR and DOCKER_HUB_PSW from the credential ID
-        DOCKER_HUB = credentials('docker-hub-credentials')
-        // Corrected HELM_REPO_TOKEN binding
-        HELM_TOKEN = credentials('helm-repo-token')
     }
 
     stages {
@@ -25,43 +21,55 @@ pipeline {
 
         stage('Build & Push Docker Image') {
             steps {
-                sh "echo $DOCKER_HUB_PSW | docker login -u $DOCKER_HUB_USR --password-stdin"
-                sh "docker build -t ${DOCKER_IMAGE_NAME}:${env.IMAGE_TAG} ."
-                sh "docker tag ${DOCKER_IMAGE_NAME}:${env.IMAGE_TAG} ${DOCKER_IMAGE_NAME}:latest"
-                sh "docker push ${DOCKER_IMAGE_NAME}:${env.IMAGE_TAG}"
-                sh "docker push ${DOCKER_IMAGE_NAME}:latest"
+                // Binding credentials here ensures that if they are missing, the pipeline fails gracefully at this stage
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_HUB_USR', passwordVariable: 'DOCKER_HUB_PSW')]) {
+                    sh "echo $DOCKER_HUB_PSW | docker login -u $DOCKER_HUB_USR --password-stdin"
+                    sh "docker build -t ${DOCKER_IMAGE_NAME}:${env.IMAGE_TAG} ."
+                    sh "docker tag ${DOCKER_IMAGE_NAME}:${env.IMAGE_TAG} ${DOCKER_IMAGE_NAME}:latest"
+                    sh "docker push ${DOCKER_IMAGE_NAME}:${env.IMAGE_TAG}"
+                    sh "docker push ${DOCKER_IMAGE_NAME}:latest"
+                }
             }
         }
 
         stage('Update Helm Chart') {
             steps {
-                sh """
-                    # Clean up any existing directory
-                    rm -rf HelmChartForAirpulse
-                    
-                    # Clone the Helm repository using the token
-                    git clone https://${HELM_TOKEN}@${HELM_REPO_URL}
-                    cd HelmChartForAirpulse/airpulse-chart
+                withCredentials([string(credentialsId: 'helm-repo-token', variable: 'HELM_TOKEN')]) {
+                    sh """
+                        # Clean up any existing directory
+                        rm -rf HelmChartForAirpulse
+                        
+                        # Clone the Helm repository using the token
+                        git clone https://${HELM_TOKEN}@${HELM_REPO_URL}
+                        cd HelmChartForAirpulse/airpulse-chart
 
-                    # Configure Git
-                    git config user.name "Jenkins Pipeline"
-                    git config user.email "jenkins@airpulse.com"
+                        # Configure Git
+                        git config user.name "Jenkins Pipeline"
+                        git config user.email "jenkins@airpulse.com"
 
-                    # Update the image tag in values.yaml
-                    sed -i "s|tag:.*|tag: \\"${env.IMAGE_TAG}\\"|" values.yaml
+                        # Update the image tag in values.yaml
+                        sed -i "s|tag:.*|tag: \\"${env.IMAGE_TAG}\\"|" values.yaml
 
-                    # Commit and push the changes
-                    git add values.yaml
-                    git commit -m "Update AirPulse image tag to ${env.IMAGE_TAG} [Jenkins Build #${env.BUILD_NUMBER}]"
-                    git push origin main
-                """
+                        # Commit and push the changes
+                        git add values.yaml
+                        git commit -m "Update AirPulse image tag to ${env.IMAGE_TAG} [Jenkins Build #${env.BUILD_NUMBER}]"
+                        git push origin main
+                    """
+                }
             }
         }
     }
     
     post {
         always {
-            cleanWs()
+            // Only clean workspace if it was actually allocated
+            script {
+                try {
+                    cleanWs()
+                } catch (Exception e) {
+                    echo "Could not clean workspace: ${e.message}"
+                }
+            }
         }
         success {
             echo 'Pipeline completed successfully!'
